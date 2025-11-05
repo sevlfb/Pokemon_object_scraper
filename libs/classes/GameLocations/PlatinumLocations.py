@@ -1,7 +1,7 @@
-from lib.classes.GameLocations.GameLocations import GameLocations
-from lib.classes.enums.Enums import HiddenMoves
+from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
+from libs.classes.enums.Enums import HiddenMoves
 
-class PlatinumLocations(GameLocations):
+class PlatinumLocations(GameLocationsAbstract):
     
     def __init__(self):
         
@@ -91,7 +91,7 @@ class PlatinumLocations(GameLocations):
             "7": {
                 "unlocks": [7],
                 "places": [
-                    "Rive Lac Savoir", "Lac Savoir", "QG de la team Galaxie", "Monde Distorsion", "Route 222", "Grotte Retour", "QG Galaxie",
+                    "Rive Lac Savoir", "Lac Savoir", "QG de la team Galaxie", "Monde Distorsion", "Route 222", "Source Adieu", "Grotte Retour", "QG Galaxie",
                     "Rivamar", "Chenal 223",
                     "Colonnes Lances",
                     "Lac souterrain"
@@ -116,6 +116,7 @@ class PlatinumLocations(GameLocations):
                 "places": [
                     "Route 224", 
                     "Aire de Combat",
+                    "Zone de Combat",
                     "Route 225",
                     "Aire de Survie",
                     "Chenal 226",

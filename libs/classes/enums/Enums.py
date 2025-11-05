@@ -33,4 +33,12 @@ class HiddenMoves(Enum):
 class ArenaCities(Enum):
     CHARBOURG = "Charbourg"
     
+
+class ZonesEnums(Enum):
+    CANNE = "canne"
+    SUPER_CANNE = "super canne"
+    MEGA_CANNE = "méga canne"
+    SURF = "surf"
+    
+    
     

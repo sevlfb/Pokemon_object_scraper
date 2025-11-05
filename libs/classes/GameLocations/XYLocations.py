@@ -1,7 +1,7 @@
-from lib.classes.GameLocations.GameLocations import GameLocations
-from lib.classes.enums.Enums import HiddenMoves
+from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
+from libs.classes.enums.Enums import HiddenMoves
 
-class XYLocations:
+class XYLocations(GameLocationsAbstract):
     
     def __init__(self):
         
@@ -60,6 +60,7 @@ class XYLocations:
                 "unlocks": [3],
                 "places": [
                     "Baie Azur", 
+                    "Antre Néréen",
                     "Port Tempères"
                 ]
             },
@@ -98,6 +99,7 @@ class XYLocations:
                 "unlocks": [8],
                 "places": [
                     "Labos Lysandre",
+                    "Repaire Team Flare",
                     "Route 21",
                     "Route Victoire", "Ligue Pokémon", "Chambre du Néant"
                 ]
