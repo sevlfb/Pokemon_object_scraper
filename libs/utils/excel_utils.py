@@ -6,8 +6,8 @@ from openpyxl.styles import Font, Border, Side, Color, Alignment, PatternFill
 import urllib3
 import io
 import math
-from lib.utils.bs4_utils import URL_PREFIX
-from lib.classes.GameLocations.GameLocations import GameLocations
+from libs.utils.bs4_utils import URL_PREFIX
+from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
 
 
 """def get_sheet_name(badge: int, game_locations: GameLocations):
@@ -56,7 +56,7 @@ def design_place_name(left_cell, right_cell, font_size=14, alignment_ = "left", 
         cell.alignment = alignment
     
 
-def set_or_create_sheet(workbook, badge, game_locations: GameLocations):
+def set_or_create_sheet(workbook, badge, game_locations: GameLocationsAbstract):
     if int(badge) == 0:
         sheet = workbook.active
         sheet.title = "Départ"
@@ -80,7 +80,7 @@ def blank_sheet(cols_to_blank):
                 cell.fill = PatternFill("solid", start_color=Color(rgb="ffffff"))
 
 
-def chronological_sort(objects_data: dict, game_locations: GameLocations):
+def chronological_sort(objects_data: dict, game_locations: GameLocationsAbstract):
     ordered_data = []
     for badge in game_locations.locations_order:
         for place in game_locations.locations_order[badge]["places"]:
@@ -94,7 +94,7 @@ def get_percent_completion(iters: list, lengths: list):
 
 
  
-def write_all_data_in_excel(global_object_data, game_locations: GameLocations, name=None, path="./output"):
+def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbstract, name=None, path="./output"):
     
     """
     data = {
@@ -137,6 +137,7 @@ def write_all_data_in_excel(global_object_data, game_locations: GameLocations, n
                         sheet.merge_cells(start_row=row_index, end_row=row_index, start_column=1, end_column=3)
                         row_index += 1
                     for object_iter, object_data_row in enumerate(temp_ := sub_group[sub_place]):
+                        #print(number_badges_obtained, place_real_name, place_sub_group, sub_place, object_data_row, sep = " -> ")
                         print(f"""{get_percent_completion([iter_badge, iter_place],
                             [len(global_object_data), len(global_object_data[number_badges_obtained])])}%""", end="\r")
                         for field_index in range(NUMBER_FIELDS):
@@ -147,7 +148,8 @@ def write_all_data_in_excel(global_object_data, game_locations: GameLocations, n
                             cell.fill = PatternFill("solid", start_color=bgColor)
                             IMAGE_INDEX = 0
                             if field_index == IMAGE_INDEX:
-                                if str(object_data_row[field_index]).startswith('/'):
+                                if str(object_data_row[field_index]).startswith('/') and len(str(object_data_row[field_index])) > 4:
+                                    #print(f"{URL_PREFIX}{object_data_row[field_index]}")
                                     img = get_url_image(http, f"{URL_PREFIX}{object_data_row[field_index]}")
                                     sheet.add_image(img, f'{cell.column_letter}{cell.row}')
                                     #cell.value = f"=_xlfn.IMAGE(LIEN_HYPERTEXTE(\"{URL_PREFIX}{object[i]}\"))"

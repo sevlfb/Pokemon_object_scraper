@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class GameLocations(ABC):
+class GameLocationsAbstract(ABC):
     
     @property
     @abstractmethod

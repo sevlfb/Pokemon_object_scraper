@@ -2,25 +2,17 @@ import requests
 from bs4 import BeautifulSoup, SoupStrainer, ResultSet, Tag, NavigableString
 import requests
 import unidecode
-from ..classes.GameLocations.GameLocations import GameLocations
+from ..classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
 from ..classes.enums.Enums import BadgeOrNameEnum
+from .string_utils import get_place_name, find_all_in_text
+from .logic import get_badge_or_name_for_place, put_key, change_object
 
     
 URL_PREFIX = "https://www.pokebip.com"
 NOT_FOUND = 'Not Found'
 SESSION = requests.Session()
 
-
-def get_place_name(place_url: str) -> str:
-    return place_url.split("/")[-1]
-
-
-def href_equal_place(href: str, place_name: str) -> str:
-    return href.split("/")[-1].replace("route0", "route").replace("route", "route_").replace("__", "_").replace("_", " ").replace("-", " ") \
-    == unidecode.unidecode(place_name).lower().replace("_", " ").replace("-", " ").replace("'", "")
-
-
-def get_place_objects(place_url: str, game_locations: GameLocations) -> dict | None:
+def get_location_objects(place_url: str, game_locations: GameLocationsAbstract) -> dict | None:
     TAGS = ["div", "h2", "h3"]
     soup = get_soup(URL_PREFIX+place_url, tags=TAGS)
     if soup is not None:
@@ -31,47 +23,6 @@ def get_place_objects(place_url: str, game_locations: GameLocations) -> dict | N
             place_all_objects = get_object_table_content(object_tables, get_place_name(place_url), game_locations)
         return place_all_objects
     return None
-
-
-def str_contains(str_: str, find_: str):
-    return str_.find(find_) > -1
-
-
-def cs_badge_from_string(string, game_enum: GameLocations):
-    """_summary_
-
-    Args:
-        string (_type_): _description_
-        game_enum (GameLocations): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    CS_list = [game_enum.hm_dict[cs] for cs in game_enum.hm_dict if str_contains(string, cs.value)]
-    if len(CS_list) > 0:
-        if len(CS_list) == 1:
-            return CS_list[0]
-        OU = " ou "
-        min_badge = 0
-        if OU in string:
-            min_badge = min(CS_list)
-        else:
-            min_badge = max(CS_list)
-        return min_badge
-    return -1
-
-
-def change_object(place_order: str, object_desc: str, object_: str, location_desc: str, url_name_place: str, table_desc_: str, game_locations: GameLocations):
-    place_order = int(place_order)
-    table_desc_city_badge = int(get_badge_for_name_place(table_desc_, url_name_place, game_locations))    
-    location_sub_badge = int(get_badge_for_name_place(location_desc, url_name_place, game_locations))
-    object_badge = cs_badge_from_string(object_desc, game_locations)
-    table_desc_badge = cs_badge_from_string(table_desc_, game_locations)
-    # Mega-Gemmes
-    if unidecode.unidecode(object_).strip().endswith("ite") and all([tmp_text not in object_.lower() for tmp_text in ["pépite", "insolite"]]):
-        return 9
-    return max(place_order, table_desc_city_badge, table_desc_badge, object_badge, location_sub_badge)
-
 
 
 
@@ -110,19 +61,6 @@ def get_all_places(soup: BeautifulSoup) -> list[ResultSet]:
     return [r["href"] for road in soup.find_all(attrs={"class": class_to_get}) for r in road.find_all("a")]
 
 
-def find_all_in_text(text: str, *args) -> bool: 
-    """Checks if all args are found in a string.
-
-    Args:
-        text (str): Text to look in for args
-
-    Returns:
-        bool: True if all args are in text, else False 
-    """
-    found_args = [text.find(arg) > -1 for arg in args]
-    return all(found_args)
-
-
 def find_next_table(object_hook: Tag | NavigableString, tables_: list=[]) -> list[ResultSet]:
     """Returns all next ObjectTable of a page from a hook.
 
@@ -143,7 +81,6 @@ def find_next_table(object_hook: Tag | NavigableString, tables_: list=[]) -> lis
         tables_.append(("", table_hook))
         return find_next_table(table_hook, tables_)
 
-    #print("caca")
     return tables_
 
 
@@ -174,38 +111,9 @@ def get_object_tables(soup: BeautifulSoup) -> list[ResultSet]:
     #return [table for table in tables
     #        if find_all_in_text(table.text, "Img.", "Objet", "Localisation")]
 
- 
- 
- 
-def get_badge_or_name_for_place(place_name: str, return_data: str, game_locations: GameLocations):
-    return_data = BadgeOrNameEnum(return_data.lower()).value
-    # If place name is not translatable -> look in map    
-    if place_name in game_locations.locations_map:
-        place_name = game_locations.locations_map[place_name]
-        
-    for badge_unlock in game_locations.locations_order:
-        list_places = game_locations.locations_order[badge_unlock]["places"]
-        # If place name is well written -> return
-        if place_name in list_places:
-            return badge_unlock if return_data == "badge" else place_name
-        # If place name is not well written -> translate
-        if any(places_bool := [href_equal_place(href=place_name, place_name=place) for place in list_places]):
-            return badge_unlock if return_data == "badge" else list_places[places_bool.index(True)]
-    return -1 if return_data == "badge" else NOT_FOUND
 
 
-def get_badge_for_name_place(real_place_name, url_name_split, game_locations: GameLocations):
-    MONT_COURONNE = "mont_couronne"
-    if real_place_name.find(" et ") >= 0:
-        real_place_name = real_place_name.split(" ")[-1]
-    for badge in game_locations.locations_order:
-        if len(real_place_name) > 0 and any([(real_place_name.find(place) >= 0 or (place.find(real_place_name) >= 0 and url_name_split == MONT_COURONNE)) for place in game_locations.locations_order[badge]["places"]]):
-            return int(badge)
-    return -1
-
-
-
-def get_object_table_content(object_tables, place_name, game_locations: GameLocations):
+def get_object_table_content(object_tables, place_name, game_locations: GameLocationsAbstract):
     # Improve, get objects sub_location in <th> like:
     # 1er etage, vers Célestia, ... to divide the objects better
     
@@ -248,29 +156,5 @@ def get_object_table_content(object_tables, place_name, game_locations: GameLoca
     return return_data
 
 
-def put_key(dict_:dict=None, value=None, keys: list=[]):
-    if dict_ is None:
-        dict_ = {}
-    depth = len(keys)
-    if depth == 0:
-        return value
-    if depth == 1:
-        if keys[0] in dict_:
-            if type(dict_[keys[0]]) == list:
-                if type(value) == list:
-                    dict_[keys[0]] += value
-                else:
-                    dict_[keys[0]].append(value)
-            else:
-                dict_[keys[0]] = value
-        else:
-            dict_[keys[0]] = value
-        return dict_
-    if keys[0] in dict_:
-        dict_[keys[0]] = put_key(dict_[keys[0]], value, keys[1:])
-        return dict_
-    else:
-        dict_[keys[0]] = {keys[1]: {}}
-        dict_[keys[0]][keys[1]] = put_key(dict_[keys[0]][keys[1]], value, keys[2:])
-        return dict_
+
     
