@@ -42,7 +42,7 @@ def change_object(location_badge_discovery: str, object_desc: str, object_name: 
     inner_category_hm_badge = cs_badge_from_string(inner_category, game_locations.hm_dict)    
     #print(inner_category, inner_category_hm_badge,outer_category, outer_category_hm_badge, sep = " | ")
     # Mega-Gemmes
-    if unidecode.unidecode(object_name).strip().endswith("ite") and all([tmp_text not in object_name.lower() for tmp_text in ["pepite", "insolite"]]):
+    if unidecode.unidecode(object_name).strip().endswith("ite") and all([tmp_text not in unidecode.unidecode(object_name.lower()) for tmp_text in ["pepite", "insolite"]]):
         return 9
     return max(location_badge_discovery, outer_category_location_badge, outer_category_hm_badge, inner_category_hm_badge, object_desc_hm_badge, inner_category_location_badge)
 
