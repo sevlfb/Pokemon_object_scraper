@@ -21,8 +21,8 @@ class GameEnum(Enum):
     
     
 class ObjectEnum(Enum):
-    ITEMS = "items"
-    POKEMONS = "pokemons"
+    ITEMS = "Objets"
+    POKEMONS = "Pokémon"
     
 
 class HiddenMoves(Enum):

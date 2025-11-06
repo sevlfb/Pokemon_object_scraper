@@ -82,8 +82,8 @@ def set_sheet_cols_dim(sheet, cols):
         # For column B
         if excel_col_index == 2:
             enlarge_factor = lambda cell: len(cell.value)/(cell.value.count("\n")+1) * math.pow(cell.font.__getattr__("size")/(DEFAULT_FONT_SIZE), 2)
-            column_cell_sizes += [0 if cell.value is None else enlarge_factor(cell)-IMAGE_SIZE+PRETTY_WIDTH for cell in cols[0]]
-        sheet.column_dimensions[openpyxl.utils.get_column_letter(excel_col_index)].width = max(column_cell_sizes)
+            column_cell_sizes += [0 if cell.value is None else enlarge_factor(cell)-IMAGE_SIZE for cell in cols[0]]
+        sheet.column_dimensions[openpyxl.utils.get_column_letter(excel_col_index)].width = max(column_cell_sizes) + 2
 
 
 def set_sheet_rows_dim(sheet, rows, cols=5):
