@@ -1,13 +1,19 @@
 import openpyxl.drawing
 import openpyxl.drawing.image
+from openpyxl.drawing.picture import PictureFrame
+from openpyxl.drawing.xdr import XDRPositiveSize2D
 import openpyxl.utils
+from openpyxl.styles import Alignment
+from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
 from openpyxl.styles import Font, Border, Side, Color, Alignment, PatternFill
+from openpyxl.styles import numbers
 
 import urllib3
 import io
 import math
 from libs.utils.bs4_utils import URL_PREFIX
 from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
+from libs.utils.string_utils import get_images_objects_in_string, string_contains_images
 
 
 """def get_sheet_name(badge: int, game_locations: GameLocations):
@@ -75,9 +81,15 @@ def set_sheet_cols_dim(sheet, cols):
         column_cell_sizes = [0 if cell.value is None else len(cell.value) for cell in col]
         # For column B
         if excel_col_index == 2:
-            enlarge_factor = lambda cell: len(cell.value) * math.pow(cell.font.__getattr__("size")/(DEFAULT_FONT_SIZE), 2)
+            enlarge_factor = lambda cell: len(cell.value)/(cell.value.count("\n")+1) * math.pow(cell.font.__getattr__("size")/(DEFAULT_FONT_SIZE), 2)
             column_cell_sizes += [0 if cell.value is None else enlarge_factor(cell)-IMAGE_SIZE+PRETTY_WIDTH for cell in cols[0]]
         sheet.column_dimensions[openpyxl.utils.get_column_letter(excel_col_index)].width = max(column_cell_sizes)
+
+
+def set_sheet_rows_dim(sheet, rows, cols=5):
+    for i, row in enumerate(rows, start=1): 
+        increase_factor = max([cell.count("\n") for cell in row])
+        sheet.row_dimensions[openpyxl.utils.get_column_letter(i)].height = increase_factor
 
 
 def blank_sheet(cols_to_blank):
@@ -122,7 +134,6 @@ def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbs
     EVEN_BACKGROUND_COLOR = Color(rgb="AAB7DA")
     ODD_BACKGROUND_COLOR = Color(rgb="B4E8FA")
     
-    NUMBER_FIELDS = 3
     for iter_badge, number_badges_obtained in enumerate(global_object_data):
         sheet = set_or_create_sheet(workbook, number_badges_obtained, game_locations)
         row_index = 1
@@ -147,32 +158,54 @@ def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbs
                         #print(number_badges_obtained, place_real_name, place_sub_group, sub_place, object_data_row, sep = " -> ")
                         print(f"""{get_percent_completion([iter_badge, iter_place],
                             [len(global_object_data), len(global_object_data[number_badges_obtained])])}%""", end="\r")
-                        for field_index in range(NUMBER_FIELDS):
+                        for field_index, object in enumerate(object_data_row):
                             cell = sheet.cell(row_index, field_index+1)
-                            border = get_cell_border(object_iter, len(temp_)-1, field_index, NUMBER_FIELDS-1)
+                            border = get_cell_border(object_iter, len(temp_)-1, field_index, len(object_data_row)-1)
                             cell.border = border
                             bgColor =  ODD_BACKGROUND_COLOR if object_iter%2==0 else EVEN_BACKGROUND_COLOR
                             cell.fill = PatternFill("solid", start_color=bgColor)
                             IMAGE_INDEX = 0
-                            if field_index == IMAGE_INDEX:
-                                if str(object_data_row[field_index]).startswith('/') and len(str(object_data_row[field_index])) > 4:
-                                    #print(f"{URL_PREFIX}{object_data_row[field_index]}")
-                                    img = get_url_image(http, f"{URL_PREFIX}{object_data_row[field_index]}")
+                            cell = sheet.cell(row_index, field_index+1)
+                            cell.alignment = Alignment(horizontal='left',
+                                                       vertical='top',
+                                                       wrap_text=True)
+                            try:
+                                cell.value = "  "+str(object_data_row[field_index])
+                            except:
+                                # take above value
+                                cell.value = sheet.cell(row_index-1, field_index).value
+                            cell.number_format = numbers.FORMAT_TEXT
+                            if "%" in cell.value and "\n" not in cell.value:
+                                cell.value = cell.value.strip()
+                                cell.number_format = numbers.FORMAT_PERCENTAGE
+                            if "\n" in cell.value:
+                                cell.font = Font(size=int(11/(cell.value.count("\n")+1)*1.5))
+                            if string_contains_images(cell.value):
+                                #print(f"{URL_PREFIX}{object_data_row[field_index]}")
+                                images = get_images_objects_in_string(str(object_data_row[field_index]))
+                                for image_iter, image in enumerate(images):
+                                    EMU_PER_PIXEL = 9525
+                                    cell.value = cell.value.replace(image, "")
+                                    cell.value += " "*4
+                                    col_index = field_index+1 if field_index == 1 else field_index 
+                                    colOffset = EMU_PER_PIXEL*25 if field_index == 1 else 0
+                                    marker = AnchorMarker(col=col_index, row=row_index-1, 
+                                                          colOff=(-EMU_PER_PIXEL*20*image_iter-colOffset), rowOff=0)
+                                    img = get_url_image(http, f"{URL_PREFIX}{image}")
+                                    ext_width = img.width * EMU_PER_PIXEL
+                                    ext_height = img.height * EMU_PER_PIXEL
+                                    ext = XDRPositiveSize2D(ext_width, ext_height)
+                                    img.anchor = OneCellAnchor(_from=marker, ext=ext)
                                     sheet.add_image(img, f'{cell.column_letter}{cell.row}')
-                                    #cell.value = f"=_xlfn.IMAGE(LIEN_HYPERTEXTE(\"{URL_PREFIX}{object[i]}\"))"
-                            else:
-                                cell = sheet.cell(row_index, field_index+1)
-                                try:
-                                    cell.value = "  "+str(object_data_row[field_index])
-                                except:
-                                    # take above value
-                                    cell.value = sheet.cell(row_index-1, field_index).value
+                                    img.anchor = OneCellAnchor(_from=marker, ext=ext)
+
+                                #cell.value = f"=_xlfn.IMAGE(LIEN_HYPERTEXTE(\"{URL_PREFIX}{object[i]}\"))"
                         row_index += 1
                 row_index += 1
                 
         row_index += 2
         
-        cols = list(sheet.iter_cols(1,NUMBER_FIELDS))
+        cols = list(sheet.iter_cols(1,5))
         set_sheet_cols_dim(sheet, cols)
         
         cols_to_blank = sheet.iter_cols(1, 26, 1, sheet.max_row + 15)

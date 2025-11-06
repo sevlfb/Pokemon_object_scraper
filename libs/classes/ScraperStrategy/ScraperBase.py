@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup, SoupStrainer, ResultSet, Tag, NavigableString
 import requests
 from libs.utils.logic import change_object, put_key, get_badge_or_name_for_place
 import json
+from libs.classes.enums.Enums import ObjectEnum
 
 class ScraperBase():
     
@@ -90,7 +91,7 @@ class ScraperBase():
         return tables_
 
 
-    def get_object_tables(self, soup: BeautifulSoup, table_tag: str) -> list[ResultSet]:
+    def get_object_tables(self, soup: BeautifulSoup) -> list[ResultSet]:
         """Returns all object tables in a page. 'tables' doesn't always initialize to [] due to recursivity so always initialize it outside the function.
 
         Args:
@@ -99,11 +100,24 @@ class ScraperBase():
         Returns:
             list[ResultSet]: list of all object tables
         """
-        object_hook = soup.find(table_tag, string="Objets")
+        object_hook = soup.find(self.table_tags[1], string=self.object_.value)
         if object_hook is not None:
-            tablesA = self.find_next_table(object_hook, [])
+            tablesA = self.find_next_table(object_hook, 
+                                           self.table_tags[0], 
+                                           self.table_tags[-1], 
+                                           self.table_class, 
+                                           [])
             return tablesA
         return []
+        
+        #print("Haha: ", self.object_.value)
+        #print("coucou")
+        #print("\n\n")
+        #object_hook = soup.find(table_tag, string=self.object_.value)
+        #if object_hook is not None:
+        #    tablesA = self.find_next_table(object_hook, [])
+        #    return tablesA
+        #return []
 
         # This is the previous version without recursivity
         #table_titles = object_hook.find_all_next("h3")
@@ -187,15 +201,17 @@ class ScraperBase():
                     for object_ in objects_data:
                         # object_data = [img, name, desc]
                         # ok: | 0 | Au sol en hauteur après le pont | Rappel |  | route_207 |
-                        badge_unlock_for_object = change_object(
-                            location_badge_discovery=get_badge_or_name_for_place(place_name, "badge", self.game_locations),
-                            object_desc=object_[-1], 
-                            object_name=object_[-2],
-                            inner_category=inner_category, 
-                            outer_category=outer_category, 
-                            url_name_place=place_url, 
-                            game_locations=self.game_locations
-                            )
+                        badge_unlock_for_object = get_badge_or_name_for_place(place_name, "badge", self.game_locations)
+                        if self.object_ == ObjectEnum.ITEMS:
+                            badge_unlock_for_object = change_object(
+                                location_badge_discovery=get_badge_or_name_for_place(place_name, "badge", self.game_locations),
+                                object_desc=object_[-1], 
+                                object_name=object_[-2],
+                                inner_category=inner_category, 
+                                outer_category=outer_category, 
+                                url_name_place=place_url, 
+                                game_locations=self.game_locations
+                                )
                         global_object_data = put_key(
                             dict_=global_object_data, 
                             value=[object_], 
