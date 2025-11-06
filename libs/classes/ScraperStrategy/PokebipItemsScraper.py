@@ -23,24 +23,24 @@ class PokebipItemsScraper(ScraperBase):
         self.game_name = self.game_locations.game_name
         self.object_ = ObjectEnum.ITEMS
 
-    def get_object_tables(self, soup: BeautifulSoup) -> list[ResultSet]:
-        """Returns all object tables in a page. 'tables' doesn't always initialize to [] due to recursivity so always initialize it outside the function.
-
-        Args:
-            soup (BeautifulSoup): BeautifulSoup of a Web URL.
-
-        Returns:
-            list[ResultSet]: list of all object tables
-        """
-        object_hook = soup.find(self.table_tags[1], string=self.object_string)
-        if object_hook is not None:
-            tablesA = self.find_next_table(object_hook, 
-                                           self.table_tags[0], 
-                                           self.table_tags[-1], 
-                                           self.table_class, 
-                                           [])
-            return tablesA
-        return []
+    #def get_object_tables(self, soup: BeautifulSoup) -> list[ResultSet]:
+    #    """Returns all object tables in a page. 'tables' doesn't always initialize to [] due to recursivity so always initialize it outside the function.
+#
+    #    Args:
+    #        soup (BeautifulSoup): BeautifulSoup of a Web URL.
+#
+    #    Returns:
+    #        list[ResultSet]: list of all object tables
+    #    """
+    #    object_hook = soup.find(self.table_tags[1], string=self.object_string)
+    #    if object_hook is not None:
+    #        tablesA = self.find_next_table(object_hook, 
+    #                                       self.table_tags[0], 
+    #                                       self.table_tags[-1], 
+    #                                       self.table_class, 
+    #                                       [])
+    #        return tablesA
+    #    return []
 
         # This is the previous version without recursivity
         #table_titles = object_hook.find_all_next("h3")

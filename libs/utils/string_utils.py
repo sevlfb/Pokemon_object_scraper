@@ -25,3 +25,15 @@ def href_equal_place(href: str, place_name: str) -> str:
     return href.split("/")[-1].replace("route0", "route").replace("route", "route_").replace("__", "_").replace("_", " ").replace("-", " ") \
     == unidecode.unidecode(place_name).lower().replace("_", " ").replace("-", " ").replace("'", "")
 
+
+def string_contains_images(cell: str):
+    if any([img_ext in cell for img_ext in [".png", ".jpg", ".jpeg"]]):
+        return True
+    return False
+
+
+def get_images_objects_in_string(images_string: str):
+    images_string = images_string.replace("\n", " ")
+    images_string_split = [img for img in  images_string.split(" ") if len(img.strip()) > 1]
+    images = [image for image in images_string_split if string_contains_images(image)]
+    return images
