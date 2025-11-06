@@ -15,7 +15,7 @@ def main(scraper: ScraperBase.ScraperBase):
     
     print("Writing in Excel...")
     
-    write_all_data_in_excel(global_object_data, game_locations, "Platinum_objects")
+    write_all_data_in_excel(global_object_data, game_locations, scraper.game_name.value, scraper.object_.value)
     print(f"Program Performances : {time.time() - deb} s.")
 
 

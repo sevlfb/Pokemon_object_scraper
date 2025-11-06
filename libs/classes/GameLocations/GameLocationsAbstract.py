@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from libs.classes.enums.Enums import GameEnum
 
 class GameLocationsAbstract(ABC):
     
@@ -29,4 +30,9 @@ class GameLocationsAbstract(ABC):
     @property
     @abstractmethod
     def locations_url(self) -> str:
+        pass
+    
+    @property
+    @abstractmethod
+    def game_name(self) -> GameEnum:
         pass

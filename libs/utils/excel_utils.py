@@ -67,11 +67,18 @@ def set_or_create_sheet(workbook, badge, game_locations: GameLocationsAbstract):
 
 def set_sheet_cols_dim(sheet, cols):
     IMAGE_SIZE = 3.5
-    DEFAULT_FONT_SIZE = 10
+    DEFAULT_FONT_SIZE = 11
+    PRETTY_WIDTH = 2
     sheet.column_dimensions[openpyxl.utils.get_column_letter(1)].width = IMAGE_SIZE
-    for i, col in enumerate(cols[1:], start=2):
-        sheet.column_dimensions[openpyxl.utils.get_column_letter(i)].width = max([0 if cell.value is None else len(cell.value) for cell in col]+
-                                                                                 [0 if cell.value is None else len(cell.value)*cell.font.__getattr__("size")/DEFAULT_FONT_SIZE-IMAGE_SIZE for cell in cols[0]]) + 3
+    for i, col in enumerate(cols[1:], start=1): 
+        excel_col_index = i + 1
+        column_cell_sizes = [0 if cell.value is None else len(cell.value) for cell in col]
+        # For column B
+        if excel_col_index == 2:
+            enlarge_factor = lambda cell: len(cell.value) * math.pow(cell.font.__getattr__("size")/(DEFAULT_FONT_SIZE), 2)
+            column_cell_sizes += [0 if cell.value is None else enlarge_factor(cell)-IMAGE_SIZE+PRETTY_WIDTH for cell in cols[0]]
+        sheet.column_dimensions[openpyxl.utils.get_column_letter(excel_col_index)].width = max(column_cell_sizes)
+
 
 def blank_sheet(cols_to_blank):
     for col in cols_to_blank:
@@ -94,7 +101,7 @@ def get_percent_completion(iters: list, lengths: list):
 
 
  
-def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbstract, name=None, path="./output"):
+def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbstract, game:str, object_: str, path="./output"):
     
     """
     data = {
@@ -171,7 +178,7 @@ def write_all_data_in_excel(global_object_data, game_locations: GameLocationsAbs
         cols_to_blank = sheet.iter_cols(1, 26, 1, sheet.max_row + 15)
         blank_sheet(cols_to_blank)
 
-    if name is None:
+    if game is None or object_ is None:
         workbook.save(f"{path}/Scrapped_objects.xlsx")
     else:
-        workbook.save(f"{path}/{name}.xlsx")
+        workbook.save(f"{path}/{game}_{object_}.xlsx")

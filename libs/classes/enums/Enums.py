@@ -15,6 +15,16 @@ class LangEnum(Enum):
     ENGLISH = "english"
     
 
+class GameEnum(Enum):
+    PLATINUM = "Platinum"
+    XY = "XY"
+    
+    
+class ObjectEnum(Enum):
+    ITEMS = "items"
+    POKEMONS = "pokemons"
+    
+
 class HiddenMoves(Enum):
     ROCK_SMASH = "éclate-roc"
     CUT ="coupe"

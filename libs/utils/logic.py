@@ -2,12 +2,12 @@
 from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
 from .string_utils import str_contains, href_equal_place
 import unidecode
-from libs.classes.enums.Enums import BadgeOrNameEnum
+from libs.classes.enums.Enums import BadgeOrNameEnum, HiddenMoves
 
 
 NOT_FOUND = "Not Found"
 
-def cs_badge_from_string(string, game_enum: GameLocationsAbstract):
+def cs_badge_from_string(string: str, hm_dict: dict[HiddenMoves]):
     """_summary_
 
     Args:
@@ -17,7 +17,7 @@ def cs_badge_from_string(string, game_enum: GameLocationsAbstract):
     Returns:
         _type_: _description_
     """
-    CS_list = [game_enum.hm_dict[cs] for cs in game_enum.hm_dict if str_contains(string, cs.value)]
+    CS_list = [hm_dict[cs] for cs in hm_dict if str_contains(string.lower(), cs.value)]
     if len(CS_list) > 0:
         if len(CS_list) == 1:
             return CS_list[0]
@@ -35,14 +35,16 @@ def change_object(location_badge_discovery: str, object_desc: str, object_name: 
     #print("ok:", location_badge_discovery, object_desc, object_name, outer_category, inner_category, url_name_place,  sep=" | ")
     # ok: | 0 | Au sol en hauteur après le pont | Rappel |  | route_207 |
     location_badge_discovery = int(location_badge_discovery)
-    table_desc_city_badge = int(get_badge_for_name_place(outer_category, url_name_place, game_locations))    
-    location_sub_badge = int(get_badge_for_name_place(inner_category, url_name_place, game_locations))
-    object_badge = cs_badge_from_string(object_desc, game_locations)
-    table_desc_badge = cs_badge_from_string(outer_category, game_locations)
+    outer_category_location_badge = int(get_badge_for_name_place(outer_category, url_name_place, game_locations))    
+    inner_category_location_badge = int(get_badge_for_name_place(inner_category, url_name_place, game_locations))
+    object_desc_hm_badge = cs_badge_from_string(object_desc, game_locations.hm_dict)
+    outer_category_hm_badge = cs_badge_from_string(outer_category, game_locations.hm_dict)
+    inner_category_hm_badge = cs_badge_from_string(inner_category, game_locations.hm_dict)    
+    #print(inner_category, inner_category_hm_badge,outer_category, outer_category_hm_badge, sep = " | ")
     # Mega-Gemmes
     if unidecode.unidecode(object_name).strip().endswith("ite") and all([tmp_text not in object_name.lower() for tmp_text in ["pepite", "insolite"]]):
         return 9
-    return max(location_badge_discovery, table_desc_city_badge, table_desc_badge, object_badge, location_sub_badge)
+    return max(location_badge_discovery, outer_category_location_badge, outer_category_hm_badge, inner_category_hm_badge, object_desc_hm_badge, inner_category_location_badge)
 
 
 

@@ -1,9 +1,11 @@
 from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
-from libs.classes.enums.Enums import HiddenMoves
+from libs.classes.enums.Enums import HiddenMoves, GameEnum
 
 class XYLocations(GameLocationsAbstract):
     
     def __init__(self):
+        
+        self._game_name = GameEnum.XY
         
         self._locations_url = "https://www.pokebip.com/page/jeuxvideo/pokemon-x-y/guide_des_lieux/index"
 
@@ -19,7 +21,7 @@ class XYLocations(GameLocationsAbstract):
         }
         
         self._arenas_cities_list = [
-            "Départ"
+            "Départ",
             "Neuvartault",
             "Relifac-Le-Haut",
             "Yantreizh",
@@ -138,6 +140,10 @@ class XYLocations(GameLocationsAbstract):
     @property
     def locations_url(self) -> dict:
         return self._locations_url
+    
+    @property
+    def game_name(self) -> GameEnum:
+        return self._game_name
     
     def arena_string(self, index):
         if index == 0:

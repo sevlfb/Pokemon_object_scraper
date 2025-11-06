@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup, SoupStrainer, ResultSet, Tag, NavigableString
 import requests
 from libs.utils.logic import change_object, put_key, get_badge_or_name_for_place
-
+import json
 
 class ScraperBase():
     
@@ -174,7 +174,7 @@ class ScraperBase():
     
     
     def get_all_data_for_game(self):
-        global_object_data = {}
+        global_object_data = {key: {} for key in self.game_locations.locations_order}
         for i_, place_url in enumerate(self.list_places):
             print(f"{int(float(i_)/len(self.list_places)*100)}%", end="\r")
             place_name = place_url.split('/')[-1]
@@ -207,4 +207,7 @@ class ScraperBase():
                 #global_object_data[badge_number][place_to_insert] = objects_data
             else:
                 pass
-                print(f"{place_name} is not referenced in : chronological_order_places")
+                print(f"{place_name} is not referenced in : chronological_order_places")        
+        #with open("./global_object_data.json", "w") as f:
+        #    json.dump(global_object_data, f)
+        return global_object_data

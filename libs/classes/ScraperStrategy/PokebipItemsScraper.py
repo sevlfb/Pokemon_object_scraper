@@ -2,6 +2,7 @@ from .ScraperBase import ScraperBase
 from libs.classes.GameLocations.GameLocationsAbstract import GameLocationsAbstract
 from bs4 import BeautifulSoup, ResultSet, Tag
 from libs.utils.logic import put_key
+from libs.classes.enums.Enums import ObjectEnum
 
 URL_PREFIX = "https://www.pokebip.com"
 
@@ -19,7 +20,8 @@ class PokebipItemsScraper(ScraperBase):
         self.table_tags=["div", "h2", "h3"]
         self.table_class="table-container"
         self.table_cols = ["Img.", "Objet", "Localisation"]
-
+        self.game_name = self.game_locations.game_name
+        self.object_ = ObjectEnum.ITEMS
 
     def get_object_tables(self, soup: BeautifulSoup) -> list[ResultSet]:
         """Returns all object tables in a page. 'tables' doesn't always initialize to [] due to recursivity so always initialize it outside the function.
